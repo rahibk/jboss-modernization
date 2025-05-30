@@ -1,0 +1,17 @@
+{
+  "llmEndpoint": "https://api.openai.com/v1",
+  "extensions": [".js", ".ts", ".jsx", ".tsx", ".py", ".java", ".cpp", ".c"],
+  "cloudProvider": "generic",
+  "recursive": true,
+  "includeMetadata": true,
+  "skipDirectories": [
+    "node_modules",
+    ".git",
+    "dist",
+    "build",
+    "target",
+    "__pycache__"
+  ],
+  "maxFileSize": 1048576,
+  "outputFormat": "json"
+} 

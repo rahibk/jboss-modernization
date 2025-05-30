@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "timestamp": "2025-05-30T06:54:07.783Z",
+    "analyzedPath": "./kitchensink-jboss",
+    "sourceFramework": "jboss",
+    "targetFramework": "springboot3",
+    "targetJavaVersion": "21"
+  },
+  "packagedContent": {
+    "size": 197438,
+    "preview": "This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.\n\n================================================================\nFile Summary\n================================================================\n\nPurpose:\n--------\nThis file contains a packed representation of the entire repository's contents.\nIt is designed to be easily consumable by AI systems for analysis, c..."
+  },
+  "migrationAnalysis": {
+    "complexityScore": 7,
+    "estimatedEffort": "3-6 months",
+    "highLevelSteps": [
+      {
+        "title": "Assessment and Planning",
+        "description": "Analyze current jboss application architecture and dependencies",
+        "effort": "2-3 weeks"
+      },
+      {
+        "title": "Environment Setup",
+        "description": "Set up springboot3 development environment with Java 21",
+        "effort": "1 week"
+      },
+      {
+        "title": "Core Framework Migration",
+        "description": "Migrate from jboss to springboot3 core components",
+        "effort": "4-8 weeks"
+      },
+      {
+        "title": "Testing and Validation",
+        "description": "Comprehensive testing of migrated application",
+        "effort": "3-4 weeks"
+      }
+    ],
+    "frameworkChanges": [
+      {
+        "component": "Application Server",
+        "action": "Replace",
+        "description": "Replace jboss application server with embedded springboot3 server",
+        "before": "jboss EAR/WAR deployment",
+        "after": "springboot3 executable JAR"
+      }
+    ],
+    "dependencyChanges": {
+      "remove": [
+        "jboss dependencies"
+      ],
+      "add": [
+        "springboot3 starters"
+      ],
+      "update": [
+        "Java version to 21"
+      ]
+    },
+    "codeExamples": [],
+    "riskAssessment": {
+      "level": "Medium",
+      "risks": [
+        "Framework compatibility issues",
+        "Configuration complexity"
+      ],
+      "mitigations": [
+        "Incremental migration",
+        "Comprehensive testing"
+      ]
+    },
+    "recommendations": [
+      "Plan migration in phases",
+      "Set up comprehensive testing",
+      "Train team on Spring Boot",
+      "Document migration process"
+    ]
+  }
+}
