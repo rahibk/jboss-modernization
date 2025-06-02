@@ -103,8 +103,20 @@ Format your response as a JSON object with the following structure:
   }
 
   async assessCloudReadiness(filePath: string, fileContent: string, cloudProvider: string): Promise<string> {
+    const providerSpecific = cloudProvider === 'atlas' 
+      ? 'MongoDB Atlas deployment' 
+      : `${cloudProvider.toUpperCase()} cloud deployment`;
+    
+    const atlasSpecificCriteria = cloudProvider === 'atlas' 
+      ? `
+9. MongoDB Atlas compatibility (connection strings, drivers)
+10. Atlas App Services integration potential
+11. Atlas Search and Analytics readiness
+12. Atlas Device Sync considerations` 
+      : '';
+
     const prompt = `
-Assess the following code file for cloud deployment readiness on ${cloudProvider.toUpperCase()}:
+Assess the following code file for cloud deployment readiness on ${providerSpecific}:
 
 File: ${filePath}
 Content:
@@ -120,7 +132,7 @@ Please evaluate:
 5. Container/serverless compatibility
 6. Database and storage patterns
 7. Security best practices for cloud
-8. CI/CD readiness
+8. CI/CD readiness${atlasSpecificCriteria}
 
 Provide a readiness score (0-10) and specific recommendations.
 

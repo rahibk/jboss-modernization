@@ -244,6 +244,15 @@ ${data.cloudProvider === 'aws' ? `
 - Implement Cloud Monitoring and Logging
 - Consider Cloud Functions for event-driven architecture
 - Use Cloud SQL for managed databases
+` : data.cloudProvider === 'atlas' ? `
+### MongoDB Atlas Recommendations
+- Use MongoDB Atlas for managed database services
+- Implement Atlas App Services for serverless functions and triggers
+- Use Atlas Search for full-text search capabilities
+- Implement Atlas Data Lake for analytics and data archiving
+- Use Atlas Device Sync for mobile and edge applications
+- Configure Atlas Network Access Lists for security
+- Implement Atlas Performance Advisor for query optimization
 ` : `
 ### Generic Cloud Recommendations
 - Implement container orchestration (Kubernetes)

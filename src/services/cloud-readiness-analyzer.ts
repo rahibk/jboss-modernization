@@ -227,19 +227,35 @@ export class CloudReadinessAnalyzer {
     const recommendations = new Set<string>();
 
     if (issues.some(i => i.category === 'Configuration')) {
-      recommendations.add(`Use ${cloudProvider.toUpperCase()} configuration services (Parameter Store, Key Vault, etc.)`);
+      if (cloudProvider === 'atlas') {
+        recommendations.add('Use MongoDB Atlas App Services for configuration and secrets management');
+      } else {
+        recommendations.add(`Use ${cloudProvider.toUpperCase()} configuration services (Parameter Store, Key Vault, etc.)`);
+      }
     }
 
     if (issues.some(i => i.category === 'Security')) {
-      recommendations.add('Implement cloud security best practices and use managed identity services');
+      if (cloudProvider === 'atlas') {
+        recommendations.add('Implement MongoDB Atlas security best practices including Network Access Lists and Database Users');
+      } else {
+        recommendations.add('Implement cloud security best practices and use managed identity services');
+      }
     }
 
     if (issues.some(i => i.category === 'Observability')) {
-      recommendations.add('Integrate with cloud monitoring and logging services');
+      if (cloudProvider === 'atlas') {
+        recommendations.add('Integrate with MongoDB Atlas monitoring, alerts, and performance advisor');
+      } else {
+        recommendations.add('Integrate with cloud monitoring and logging services');
+      }
     }
 
     if (issues.some(i => i.category === 'Scalability')) {
-      recommendations.add('Design for horizontal scaling and use managed services');
+      if (cloudProvider === 'atlas') {
+        recommendations.add('Design for MongoDB Atlas auto-scaling and use Atlas Data Lake for analytics');
+      } else {
+        recommendations.add('Design for horizontal scaling and use managed services');
+      }
     }
 
     return Array.from(recommendations);

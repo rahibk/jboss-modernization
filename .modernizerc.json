@@ -2,6 +2,7 @@
   "llmEndpoint": "https://api.openai.com/v1",
   "extensions": [".js", ".ts", ".jsx", ".tsx", ".py", ".java", ".cpp", ".c"],
   "cloudProvider": "generic",
+  "_cloudProviderOptions": ["aws", "azure", "gcp", "atlas", "generic"],
   "recursive": true,
   "includeMetadata": true,
   "skipDirectories": [

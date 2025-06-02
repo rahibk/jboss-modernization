@@ -13,7 +13,7 @@ interface CloudReadinessArgs {
   llmApiKey?: string;
   recursive?: boolean;
   extensions?: string[];
-  cloudProvider?: 'aws' | 'azure' | 'gcp' | 'generic';
+  cloudProvider?: 'aws' | 'azure' | 'gcp' | 'atlas' | 'generic';
 }
 
 export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
@@ -53,7 +53,7 @@ export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
       .option('cloud-provider', {
         alias: 'p',
         describe: 'Target cloud provider for assessment',
-        choices: ['aws', 'azure', 'gcp', 'generic'] as const,
+        choices: ['aws', 'azure', 'gcp', 'atlas', 'generic'] as const,
         default: 'generic' as const,
       }) as Argv<CloudReadinessArgs>;
   },

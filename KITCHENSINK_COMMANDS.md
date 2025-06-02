@@ -15,6 +15,8 @@ This document provides example commands to analyze the `kitchensink-jboss` appli
    export LLM_ENDPOINT=https://api.openai.com/v1  # Optional, defaults to OpenAI
    ```
 
+3. **NEW:** Your NVD API key is pre-configured for enhanced OWASP analysis: `ccfd0503-b629-4aa2-a759-53f2bc9b585a`
+
 ## Available Commands
 
 The modernization toolset provides three main commands:
@@ -53,17 +55,36 @@ npx modernize architect ./kitchensink-jboss \
 
 ## Security Analysis Commands
 
-### CVE vulnerability analysis
+### Enhanced CVE Analysis (🆕 OWASP + NVD + LLM Integration)
+
+#### **🚀 Enhanced CVE Analysis (Recommended)**
 ```bash
 npx modernize cve ./kitchensink-jboss
 ```
 
-### CVE analysis with specific options
+**This NEW enhanced analysis provides:**
+- **🛡️ OWASP Dependency Check** with your NVD API key for authoritative vulnerability data
+- **🧠 LLM Analysis** for business context and strategic recommendations  
+- **📊 Real-time CVE Database** access (no training data limitations)
+- **🎯 Strategic Migration Planning** with risk prioritization
+- **📈 Executive Dashboards** with actionable insights
+
+#### Enhanced Analysis Process:
+1. **Step 1:** OWASP Dependency Check scans with NVD database (your API key: `ccfd0503-b629-4aa2-a759-53f2bc9b585a`)
+2. **Step 2:** LLM enhances findings with business context and migration complexity
+3. **Step 3:** Strategic recommendations with phased remediation plans
+
+#### Custom NVD API Key
+```bash
+npx modernize cve ./kitchensink-jboss --nvd-api-key your-custom-nvd-key
+```
+
+#### Enhanced Analysis with Custom Parameters
 ```bash
 npx modernize cve ./kitchensink-jboss \
   --llm-endpoint https://api.openai.com/v1 \
   --llm-api-key your-api-key \
-  --extensions ".java" ".xml" ".properties"
+  --nvd-api-key ccfd0503-b629-4aa2-a759-53f2bc9b585a
 ```
 
 ## Cloud Readiness Assessment Commands
@@ -103,7 +124,7 @@ npx modernize cve ./kitchensink-jboss
 
 # Cloud readiness
 npx modernize cloud-readiness ./kitchensink-jboss \
-  --cloud-provider aws
+  --cloud-provider mongodb
 ```
 
 ## Framework-Specific Examples
