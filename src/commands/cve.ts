@@ -6,12 +6,12 @@ import * as path from 'path';
 import { CveAnalyzer } from '../services/cve-analyzer';
 import { FileScanner } from '../utils/file-scanner';
 import { LlmService } from '../services/llm-service';
+import { saveAnalysisResults } from '../utils/output-utils';
 
 interface CveArgs {
   path: string;
   llmEndpoint?: string;
   llmApiKey?: string;
-  output?: string;
   recursive?: boolean;
   extensions?: string[];
 }
@@ -38,11 +38,6 @@ export const cveCommand: CommandModule<{}, CveArgs> = {
         type: 'string',
         default: process.env.LLM_API_KEY,
       })
-      .option('output', {
-        alias: 'o',
-        describe: 'Output file for CVE analysis results',
-        type: 'string',
-      })
       .option('recursive', {
         alias: 'r',
         describe: 'Recursively scan directories',
@@ -58,6 +53,15 @@ export const cveCommand: CommandModule<{}, CveArgs> = {
   },
   handler: async (argv) => {
     const spinner = ora('Initializing CVE analysis...').start();
+
+    // Capture terminal output
+    let terminalOutput = '';
+    const originalLog = console.log;
+    console.log = (...args: any[]) => {
+      const message = args.join(' ');
+      terminalOutput += message + '\n';
+      originalLog(...args);
+    };
 
     try {
       // Validate input path
@@ -114,21 +118,32 @@ export const cveCommand: CommandModule<{}, CveArgs> = {
         console.log(chalk.green('\n✅ No CVEs detected in the analyzed files.'));
       }
 
-      // Save results to file if specified
-      if (argv.output) {
-        const outputData = {
-          timestamp: new Date().toISOString(),
-          analyzedPath: argv.path,
-          totalFiles: files.length,
-          vulnerableFiles: results.length,
-          results: results,
-        };
-        
-        fs.writeFileSync(argv.output, JSON.stringify(outputData, null, 2));
-        console.log(chalk.blue(`\n📄 Results saved to: ${argv.output}`));
-      }
+      // Restore original console.log
+      console.log = originalLog;
+
+      // Automatically save results with timestamp
+      const outputData = {
+        timestamp: new Date().toISOString(),
+        analyzedPath: argv.path,
+        totalFiles: files.length,
+        vulnerableFiles: results.length,
+        results: results,
+      };
+      
+      const { jsonFile, markdownFile } = saveAnalysisResults(
+        'cve',
+        outputData,
+        terminalOutput,
+        argv.path
+      );
+
+      console.log(chalk.blue(`\n📄 Results saved:`));
+      console.log(chalk.blue(`   JSON: ${jsonFile}`));
+      console.log(chalk.blue(`   Markdown: ${markdownFile}`));
 
     } catch (error) {
+      // Restore original console.log in case of error
+      console.log = originalLog;
       spinner.fail(chalk.red('CVE analysis failed'));
       throw error;
     }

@@ -5,10 +5,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { LlmService } from '../services/llm-service';
+import { saveAnalysisResults, stripAnsiColors } from '../utils/output-utils';
 
 interface ArchitectArgs {
   path: string;
-  output?: string;
   sourceFramework?: 'jboss' | 'wildfly' | 'tomcat' | 'websphere' | 'weblogic';
   targetFramework?: 'springboot3' | 'springboot2';
   targetJavaVersion?: '17' | '21' | '11';
@@ -28,11 +28,6 @@ export const architectCommand: CommandModule<{}, ArchitectArgs> = {
         type: 'string',
         demandOption: true,
       })
-      .option('output', {
-        alias: 'o',
-        describe: 'Output file for migration analysis results',
-        type: 'string',
-      })
       .option('source-framework', {
         alias: 's',
         describe: 'Source framework to migrate from',
@@ -48,7 +43,7 @@ export const architectCommand: CommandModule<{}, ArchitectArgs> = {
       .option('target-java-version', {
         alias: 'j',
         describe: 'Target Java version for migration',
-        choices: ['17', '21', '11'] as const,
+        choices: ['11', '17', '21'] as const,
         default: '21' as const,
       })
       .option('llm-endpoint', {
@@ -76,6 +71,15 @@ export const architectCommand: CommandModule<{}, ArchitectArgs> = {
   },
   handler: async (argv) => {
     const spinner = ora('Initializing architectural migration analysis...').start();
+    
+    // Capture terminal output
+    let terminalOutput = '';
+    const originalLog = console.log;
+    console.log = (...args: any[]) => {
+      const message = args.join(' ');
+      terminalOutput += message + '\n';
+      originalLog(...args);
+    };
 
     try {
       // Validate input path
@@ -182,28 +186,39 @@ export const architectCommand: CommandModule<{}, ArchitectArgs> = {
         });
       }
 
-      // Save results to file if specified
-      if (argv.output) {
-        const outputData = {
-          metadata: {
-            timestamp: new Date().toISOString(),
-            analyzedPath: argv.path,
-            sourceFramework: argv.sourceFramework,
-            targetFramework: argv.targetFramework,
-            targetJavaVersion: argv.targetJavaVersion,
-          },
-          packagedContent: {
-            size: packagedContent.length,
-            preview: packagedContent.substring(0, 500) + '...'
-          },
-          migrationAnalysis: migrationAnalysis,
-        };
-        
-        fs.writeFileSync(argv.output, JSON.stringify(outputData, null, 2));
-        console.log(chalk.blue(`\n📄 Migration analysis saved to: ${argv.output}`));
-      }
+      // Restore original console.log
+      console.log = originalLog;
+
+      // Automatically save results with timestamp
+      const outputData = {
+        metadata: {
+          timestamp: new Date().toISOString(),
+          analyzedPath: argv.path,
+          sourceFramework: argv.sourceFramework,
+          targetFramework: argv.targetFramework,
+          targetJavaVersion: argv.targetJavaVersion,
+        },
+        packagedContent: {
+          size: packagedContent.length,
+          preview: packagedContent.substring(0, 500) + '...'
+        },
+        migrationAnalysis: migrationAnalysis,
+      };
+      
+      const { jsonFile, markdownFile } = saveAnalysisResults(
+        'architect',
+        outputData,
+        terminalOutput,
+        argv.path
+      );
+
+      console.log(chalk.blue(`\n📄 Analysis results saved:`));
+      console.log(chalk.blue(`   JSON: ${jsonFile}`));
+      console.log(chalk.blue(`   Markdown: ${markdownFile}`));
 
     } catch (error) {
+      // Restore original console.log in case of error
+      console.log = originalLog;
       spinner.fail(chalk.red('Architectural migration analysis failed'));
       throw error;
     }
@@ -405,56 +420,30 @@ Format your response as a JSON object:
 }
 
 function createFallbackArchitecturalAnalysis(sourceFramework: string, targetFramework: string, targetJavaVersion: string): any {
-  return {
-    complexityScore: 7,
-    estimatedEffort: '3-6 months',
-    highLevelSteps: [
-      {
-        title: 'Assessment and Planning',
-        description: `Analyze current ${sourceFramework} application architecture and dependencies`,
-        effort: '2-3 weeks'
-      },
-      {
-        title: 'Environment Setup',
-        description: `Set up ${targetFramework} development environment with Java ${targetJavaVersion}`,
-        effort: '1 week'
-      },
-      {
-        title: 'Core Framework Migration',
-        description: `Migrate from ${sourceFramework} to ${targetFramework} core components`,
-        effort: '4-8 weeks'
-      },
-      {
-        title: 'Testing and Validation',
-        description: 'Comprehensive testing of migrated application',
-        effort: '3-4 weeks'
-      }
-    ],
-    frameworkChanges: [
-      {
-        component: 'Application Server',
-        action: 'Replace',
-        description: `Replace ${sourceFramework} application server with embedded ${targetFramework} server`,
-        before: `${sourceFramework} EAR/WAR deployment`,
-        after: `${targetFramework} executable JAR`
-      }
-    ],
-    dependencyChanges: {
-      remove: [`${sourceFramework} dependencies`],
-      add: [`${targetFramework} starters`],
-      update: [`Java version to ${targetJavaVersion}`]
-    },
-    codeExamples: [],
-    riskAssessment: {
-      level: 'Medium',
-      risks: ['Framework compatibility issues', 'Configuration complexity'],
-      mitigations: ['Incremental migration', 'Comprehensive testing']
-    },
-    recommendations: [
-      'Plan migration in phases',
-      'Set up comprehensive testing',
-      'Train team on Spring Boot',
-      'Document migration process'
-    ]
-  };
+  throw new Error(`Failed to analyze architecture for ${sourceFramework} to ${targetFramework} migration. Please ensure LLM service is properly configured and accessible.
+
+Sample commands to analyze the kitchensink-jboss application:
+
+Basic analysis:
+  npx modernize architect ./kitchensink-jboss
+
+With specific frameworks:
+  npx modernize architect ./kitchensink-jboss --source-framework jboss --target-framework springboot3
+
+Full example with all options:
+  npx modernize architect ./kitchensink-jboss \\
+    --source-framework jboss \\
+    --target-framework springboot3 \\
+    --llm-endpoint https://api.openai.com/v1 \\
+    --llm-api-key your-api-key \\
+    --include-tests \\
+    --exclude-patterns "*.class" "target/" "node_modules/"
+
+Environment variables can also be used:
+  export LLM_API_KEY=your-api-key
+  export LLM_ENDPOINT=https://api.openai.com/v1
+  npx modernize architect ./kitchensink-jboss
+
+Note: Results are automatically saved to timestamped JSON and Markdown files.
+`);
 } 

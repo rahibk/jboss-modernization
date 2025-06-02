@@ -5,12 +5,12 @@ import * as fs from 'fs';
 import { CloudReadinessAnalyzer } from '../services/cloud-readiness-analyzer';
 import { FileScanner } from '../utils/file-scanner';
 import { LlmService } from '../services/llm-service';
+import { saveAnalysisResults } from '../utils/output-utils';
 
 interface CloudReadinessArgs {
   path: string;
   llmEndpoint?: string;
   llmApiKey?: string;
-  output?: string;
   recursive?: boolean;
   extensions?: string[];
   cloudProvider?: 'aws' | 'azure' | 'gcp' | 'generic';
@@ -38,11 +38,6 @@ export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
         type: 'string',
         default: process.env.LLM_API_KEY,
       })
-      .option('output', {
-        alias: 'o',
-        describe: 'Output file for cloud readiness assessment',
-        type: 'string',
-      })
       .option('recursive', {
         alias: 'r',
         describe: 'Recursively scan directories',
@@ -64,6 +59,15 @@ export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
   },
   handler: async (argv) => {
     const spinner = ora('Initializing cloud readiness assessment...').start();
+
+    // Capture terminal output
+    let terminalOutput = '';
+    const originalLog = console.log;
+    console.log = (...args: any[]) => {
+      const message = args.join(' ');
+      terminalOutput += message + '\n';
+      originalLog(...args);
+    };
 
     try {
       // Validate input path
@@ -123,7 +127,7 @@ export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
         console.log(chalk.yellow(`⚠️  Medium Readiness (${mediumReadiness.length} files):`));
         mediumReadiness.slice(0, 5).forEach(r => {
           console.log(chalk.yellow(`   • ${r.filePath} (${r.readinessScore.toFixed(1)}/10)`));
-          r.issues.slice(0, 2).forEach(issue => {
+          r.issues.slice(0, 2).forEach((issue: any) => {
             console.log(chalk.gray(`     - ${issue.description}`));
           });
         });
@@ -137,7 +141,7 @@ export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
         console.log(chalk.red(`❌ Low Readiness (${lowReadiness.length} files):`));
         lowReadiness.slice(0, 5).forEach(r => {
           console.log(chalk.red(`   • ${r.filePath} (${r.readinessScore.toFixed(1)}/10)`));
-          r.issues.slice(0, 3).forEach(issue => {
+          r.issues.slice(0, 3).forEach((issue: any) => {
             console.log(chalk.gray(`     - ${issue.description}`));
             if (issue.recommendation) {
               console.log(chalk.green(`       💡 ${issue.recommendation}`));
@@ -149,27 +153,38 @@ export const cloudReadinessCommand: CommandModule<{}, CloudReadinessArgs> = {
         }
       }
 
-      // Save results to file if specified
-      if (argv.output) {
-        const outputData = {
-          timestamp: new Date().toISOString(),
-          analyzedPath: argv.path,
-          cloudProvider: argv.cloudProvider,
-          overallScore: overallScore,
-          totalFiles: files.length,
-          summary: {
-            highReadiness: highReadiness.length,
-            mediumReadiness: mediumReadiness.length,
-            lowReadiness: lowReadiness.length,
-          },
-          assessments: assessmentResults,
-        };
-        
-        fs.writeFileSync(argv.output, JSON.stringify(outputData, null, 2));
-        console.log(chalk.blue(`\n📄 Assessment results saved to: ${argv.output}`));
-      }
+      // Restore original console.log
+      console.log = originalLog;
+
+      // Automatically save results with timestamp
+      const outputData = {
+        timestamp: new Date().toISOString(),
+        analyzedPath: argv.path,
+        cloudProvider: argv.cloudProvider,
+        overallScore: overallScore,
+        totalFiles: files.length,
+        summary: {
+          highReadiness: highReadiness.length,
+          mediumReadiness: mediumReadiness.length,
+          lowReadiness: lowReadiness.length,
+        },
+        assessments: assessmentResults,
+      };
+      
+      const { jsonFile, markdownFile } = saveAnalysisResults(
+        'cloud-readiness',
+        outputData,
+        terminalOutput,
+        argv.path
+      );
+
+      console.log(chalk.blue(`\n📄 Assessment results saved:`));
+      console.log(chalk.blue(`   JSON: ${jsonFile}`));
+      console.log(chalk.blue(`   Markdown: ${markdownFile}`));
 
     } catch (error) {
+      // Restore original console.log in case of error
+      console.log = originalLog;
       spinner.fail(chalk.red('Cloud readiness assessment failed'));
       throw error;
     }

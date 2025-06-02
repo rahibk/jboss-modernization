@@ -309,40 +309,28 @@ Format your response as a JSON object with the following structure:
   }
 
   private createFallbackMigrationAnalysis(currentFramework: string, targetFramework: string, targetJavaVersion: string): any {
-    return {
-      complexityScore: 6,
-      estimatedEffort: '2-4 weeks',
-      fileStructureChanges: [
-        {
-          type: 'modify',
-          description: 'Package migration from javax to jakarta',
-          before: 'javax.*',
-          after: 'jakarta.*',
-          reason: 'Spring Boot 3 requirement'
-        }
-      ],
-      migrationSteps: [
-        {
-          title: 'Prepare Migration Environment',
-          description: 'Set up development environment with Java 21 and Spring Boot 3',
-          priority: 'High',
-          category: 'Configuration',
-          estimatedHours: 4
-        }
-      ],
-      targetAsts: [],
-      dependencyChanges: {
-        remove: ['spring-boot-2.x dependencies'],
-        add: ['spring-boot-3.x dependencies'],
-        update: ['Java version to 21']
-      },
-      configurationChanges: ['Update Java version', 'Migrate to Jakarta EE'],
-      riskAssessment: {
-        level: 'Medium',
-        factors: ['Package namespace changes', 'Configuration updates']
-      },
-      recommendations: ['Test thoroughly', 'Migrate incrementally', 'Update documentation']
-    };
+    throw new Error(`Failed to perform detailed migration analysis for ${currentFramework} to ${targetFramework} migration. Please ensure LLM service is properly configured.
+
+Try these commands to analyze the kitchensink-jboss application:
+
+For architectural migration analysis use:
+  npx modernize architect ./kitchensink-jboss --source-framework jboss --target-framework springboot3
+
+With specific options:
+  npx modernize architect ./kitchensink-jboss --source-framework jboss --target-framework springboot3 --llm-api-key your-api-key
+
+For security analysis:
+  npx modernize cve ./kitchensink-jboss
+
+For cloud readiness assessment:
+  npx modernize cloud-readiness ./kitchensink-jboss --cloud-provider aws
+
+Set your LLM API key:
+  export LLM_API_KEY=your-openai-api-key
+  npx modernize architect ./kitchensink-jboss
+
+Note: All commands automatically save results to timestamped JSON and Markdown files.
+`);
   }
 
   private combineMigrationAnalysis(
